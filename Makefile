@@ -1,0 +1,27 @@
+CFLAGS = -Wall -Wpedantic -Wextra -Werror -Wl,-z,now
+CFLAGS_RELEASE = ${CFLAGS} -O2 -s -D_FORTIFY_SOURCE=2
+CFLAGS_DEBUG = ${CFLAGS} -O0 -g -fsanitize=undefined
+CFLAGS_STATIC = ${CFLAGS_RELEASE} -static-pie
+LIBS = -lcrypt
+CC = gcc
+
+all: su.c
+	${CC} ${CFLAGS_RELEASE} su.c -o su ${LIBS}
+
+static: su.c
+	${CC} ${CFLAGS_STATIC} su.c -o su ${LIBS}
+
+debug: su.c
+	${CC} ${CFLAGS_DEBUG} su.c -o su ${LIBS}
+
+install: su
+	cp su ${DESTDIR}/usr/local/bin
+	chown root:root ${DESTDIR}/usr/local/bin/su
+	chmod 755 ${DESTDIR}/usr/local/bin/su
+	chmod u+s ${DESTDIR}/usr/local/bin/su
+
+uninstall:
+	rm ${DESTDIR}/usr/local/bin/su
+
+clean:
+	rm su
