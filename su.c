@@ -4,7 +4,7 @@ int main()
 {
     if(!getuid()){
         putenv("HOME=/root");
-        return system(shell) != -1;
+        return system(SHELL) != -1;
     }
     struct passwd *user = getpwuid(0);
     char pass[PWD_MAX + 1];
@@ -53,5 +53,5 @@ int main()
     }
 
     putenv("HOME=/root");
-    return system(shell) != -1;
+    return system(SHELL) != -1;
 }
