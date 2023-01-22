@@ -1,18 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pwd.h>
-#include <string.h>
-#include <shadow.h>
-#include <termios.h>
-#include <unistd.h>
-
-#define PWD_MAX 200
+#include "su.h"
 
 int main()
 {
     if(!getuid()){
         putenv("HOME=/root");
-        return system("/bin/bash") != -1;
+        return system(shell) != -1;
     }
     struct passwd *user = getpwuid(0);
     char pass[PWD_MAX + 1];
@@ -61,5 +53,5 @@ int main()
     }
 
     putenv("HOME=/root");
-    return system("/bin/bash") != -1;
+    return system(shell) != -1;
 }
