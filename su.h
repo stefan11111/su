@@ -8,4 +8,4 @@
 
 #define PWD_MAX 200
 
-char *shell = "/bin/bash";
+char *shell = "/bin/bash";	/* chose what shell to spawn */
