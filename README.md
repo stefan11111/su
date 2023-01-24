@@ -2,7 +2,8 @@
 Minimal su without pam dependency
 
 This app is called su to make is easier to replace GNU/su.
-All this app does is change the current shell into a root shell, provided you know root's password.
+All this app does is change the current shell into another user's shell, provided you know his's password.
+If you don't specify a user, it defaults to root.
 This app is very minimal and has no bloat.
 
 # Configuration
