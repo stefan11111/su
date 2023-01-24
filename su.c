@@ -1,12 +1,48 @@
 #include "su.h"
 
-int main()
+int switch_user(struct passwd *user)
 {
-    if(!getuid()){
+    if (setgid(user->pw_gid) < 0){
+        printf("Could not setgid.\n");
+        return -1;
+    }
+    if (setuid(user->pw_uid) < 0){
+        printf("Could not setuid.\n");
+        return -1;
+    }
+    if(!user->pw_uid){
         putenv("HOME=/root");
         return system(SHELL) != -1;
     }
-    struct passwd *user = getpwuid(0);
+    putenv(HOME);
+    return system(SHELL) != -1;
+}
+
+int main(int argc, char **argv)
+{
+    if(argc > 2){
+        printf("USAGE: su [user]\n");
+        return 0;
+    }
+    uid_t ruid = getuid();
+    struct passwd *user;
+    if(argc == 1){
+        user = getpwuid(0);
+    }
+    else{
+        user = getpwnam(argv[1]);
+    }
+    if(!user){
+        printf("User does not exist\n");
+        return -1;
+    }
+    if(ruid == user->pw_uid){
+        return 0;
+    }
+    strcat(HOME, user->pw_name);
+    if(!ruid){
+        return switch_user(user);
+    }
     char pass[PWD_MAX + 1];
     struct termios term;
     tcgetattr(1, &term);
@@ -33,7 +69,7 @@ int main()
     char *hashed = NULL;
     hashed = crypt(pass, shadow->sp_pwdp);
     if(!hashed){
-        printf("Could not hash password, does root have a password?");
+        printf("Could not hash password, does root have a password?\n");
         return 1;
     }
 
@@ -42,16 +78,5 @@ int main()
         return 1;
     }
 
-    if (setuid(0) < 0){
-        printf("Could not setuid.\n");
-        return -1;
-    }
-
-    if (setgid(0) < 0){
-        printf("Could not setgid.\n");
-        return -1;
-    }
-
-    putenv("HOME=/root");
-    return system(SHELL) != -1;
+    return switch_user(user);
 }
