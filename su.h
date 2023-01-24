@@ -11,4 +11,4 @@
 #define MAX_PATH 200
 char HOME[MAX_PATH] = "HOME=/home/";
 
-#define SHELL "/bin/bash"	/* chose what shell to spawn */
+#define SHELL "/bin/bash"	/* chose what shell to spawn if user han no shell */

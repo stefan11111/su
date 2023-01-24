@@ -12,10 +12,14 @@ int switch_user(struct passwd *user)
     }
     if(!user->pw_uid){
         putenv("HOME=/root");
-        return system(SHELL) != -1;
     }
-    putenv(HOME);
-    return system(SHELL) != -1;
+    else{
+        putenv(HOME);
+    }
+    if(!user->pw_shell){
+        return system(SHELL) == -1;
+    }
+    return system(user->pw_shell) == -1;
 }
 
 int main(int argc, char **argv)
