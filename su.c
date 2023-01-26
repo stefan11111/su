@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         return 0;
     }
     uid_t ruid = getuid();
-    struct passwd *user;
+    struct passwd *user = NULL;
     if(argc == 1){
         user = getpwuid(0);
     }
@@ -40,12 +40,12 @@ int main(int argc, char **argv)
         printf("User does not exist\n");
         return -1;
     }
-    if(ruid == user->pw_uid){
-        return 0;
-    }
     strcat(HOME, user->pw_name);
     if(!ruid){
         return switch_user(user);
+    }
+    if(ruid == user->pw_uid){
+        return 0;
     }
     char pass[PWD_MAX + 1];
     struct termios term;
