@@ -17,9 +17,9 @@ int switch_user(struct passwd *user)
         putenv(HOME);
     }
     if(!user->pw_shell){
-        return execl(SHELL, "", NULL) == -1;
+        return execl(SHELL, SHELL, (char*)NULL) == -1;
     }
-    return execl(user->pw_shell, "", NULL) == -1;
+    return execl(user->pw_shell, user->pw_shell, (char*)NULL) == -1;
 }
 
 int main(int argc, char **argv)
