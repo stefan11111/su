@@ -5,13 +5,13 @@ CFLAGS_STATIC = ${CFLAGS_RELEASE} -static-pie
 LIBS = -lcrypt
 CC = gcc
 
-all: su.c
+all: su.c su.h
 	${CC} ${CFLAGS_RELEASE} su.c -o su ${LIBS}
 
-static: su.c
+static: su.c su.h
 	${CC} ${CFLAGS_STATIC} su.c -o su ${LIBS}
 
-debug: su.c
+debug: su.c su.h
 	${CC} ${CFLAGS_DEBUG} su.c -o su ${LIBS}
 
 install: su
