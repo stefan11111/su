@@ -1,6 +1,6 @@
 #include "su.h"
 
-int switch_user(struct passwd *user)
+static int switch_user(struct passwd *user)
 {
     if (setgid(user->pw_gid) < 0){
         printf("Could not setgid.\n");
