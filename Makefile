@@ -23,7 +23,7 @@ install: su
 
 uninstall:
 	rm ${DESTDIR}/usr/local/bin/su
-	rm ${DESTDIR}/usr/local/share/man/man1
+	rm ${DESTDIR}/usr/local/share/man/man1/su.1
 
 clean:
 	rm su
