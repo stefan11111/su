@@ -25,7 +25,7 @@ static int switch_user(struct passwd *user)
 int main(int argc, char **argv)
 {
     if(argc > 2){
-        printf("USAGE: su [user]\n");
+        printf("USAGE: %s [user]\n", argv[0]);
         return 0;
     }
     uid_t ruid = getuid();
