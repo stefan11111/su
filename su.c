@@ -47,6 +47,16 @@ int main(int argc, char **argv)
     if(ruid == user->pw_uid){
         return 0;
     }
+    struct spwd* shadow = getspnam(user->pw_name);
+
+    if (!shadow || !shadow->sp_pwdp){
+        printf("Could not get shadow entry.\n");
+        return 1;
+    }
+
+    if (!strcmp(shadow->sp_pwdp, "*")) {
+        return switch_user(user);
+    }
     char pass[PWD_MAX + 1];
     struct termios term;
     tcgetattr(1, &term);
@@ -63,17 +73,10 @@ int main(int argc, char **argv)
     tcsetattr(1, 0, &term);
     printf("\n");
 
-    struct spwd* shadow = getspnam(user->pw_name);
-
-    if (!shadow || !shadow->sp_pwdp){
-        printf("Could not get shadow entry.\n");
-        return 1;
-    }
-
     char *hashed = NULL;
     hashed = crypt(pass, shadow->sp_pwdp);
     if(!hashed){
-        printf("Could not hash password, does root have a password?\n");
+        printf("Could not hash password.\n");
         return 1;
     }
 
