@@ -1,33 +1,74 @@
 #include "su.h"
 
-static int switch_user(struct passwd *user)
+static void switch_user(struct passwd *user, char **program)
 {
     if (setgid(user->pw_gid) < 0){
         printf("Could not setgid.\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
     if (setuid(user->pw_uid) < 0){
         printf("Could not setuid.\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
-    if(!user->pw_uid){
+    if (!user->pw_uid){
         putenv("HOME=/root");
     }
     else{
-        putenv(HOME);
+        putenv(home);
     }
-    if(!user->pw_shell){
-        return execl(SHELL, SHELL, (char*)NULL) == -1;
+    if (!program) {
+        if (!user->pw_shell){
+            execl(SHELL, SHELL, (char*)NULL);
+            exit(EXIT_SUCCESS);
+        }
+        execl(user->pw_shell, user->pw_shell, (char*)NULL);
+        exit(EXIT_SUCCESS);
     }
-    return execl(user->pw_shell, user->pw_shell, (char*)NULL) == -1;
+    if (execvp(*program, program) == -1) {
+        printf("%s: command not found\n", *program);
+        exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
+}
+
+static int check_password(struct spwd* shadow)
+{
+    /*check for empty password*/
+    if (!strcmp(shadow->sp_pwdp, "*")) {
+        return 0;
+    }
+    char pass[PWD_MAX + 1];
+    struct termios term;
+    tcgetattr(1, &term);
+    term.c_lflag &= ~ECHO;
+    tcsetattr(1, 0, &term);
+    term.c_lflag |= ECHO;
+    if (write(1, "Enter the password: ", 20) < 0) {
+        tcsetattr(1, 0, &term);
+    }
+    if (scanf("%200s", pass) != 1){
+        printf("Error reading password.\n");
+        tcsetattr(1, 0, &term);
+        exit(EXIT_FAILURE);
+    }
+    tcsetattr(1, 0, &term);
+    printf("\n");
+
+    char *hashed = NULL;
+    hashed = crypt(pass, shadow->sp_pwdp);
+    if (!hashed){
+        printf("Could not hash password.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (strcmp(hashed, shadow->sp_pwdp)){
+        printf("Wrong password.\n");
+        exit(EXIT_FAILURE);
+    }
+    return 0;
 }
 
 int main(int argc, char **argv)
 {
-    if(argc > 2){
-        printf("USAGE: %s [user]\n", argv[0]);
-        return 0;
-    }
     uid_t ruid = getuid();
     struct passwd *user = NULL;
     if(argc == 1){
@@ -36,54 +77,53 @@ int main(int argc, char **argv)
     else{
         user = getpwnam(argv[1]);
     }
-    if(!user){
+#ifdef COMMAND
+    if(argc > 1 && !strcmp(argv[1], "-c")){
+        user = getpwuid(0);
+    }
+#endif
+    if (!user){
         printf("User does not exist\n");
         return -1;
     }
-    strcat(HOME, user->pw_name);
-    if(!ruid){
-        return switch_user(user);
+    strcat(home, user->pw_name);
+    if (ruid) {
+        if (ruid == user->pw_uid){
+            return 0;
+        }
+        struct spwd* shadow = getspnam(user->pw_name);
+        if (!shadow || !shadow->sp_pwdp){
+            printf("Could not get shadow entry.\n");
+            return 1;
+        }
+#ifdef REQUIRE_PASSWORD
+        if (check_password(shadow)) {
+            return 1;
+        }
+#endif
     }
-    if(ruid == user->pw_uid){
+#ifdef COMMAND
+    if (argc > 1 && !strcmp(argv[1], "-c")) {
+        if (argc < 3) {
+            printf("USAGE: %s [user] [-c] [command]\n", argv[0]);
+            return 0;
+        }
+        switch_user(user, argv + 2);
         return 0;
     }
-    struct spwd* shadow = getspnam(user->pw_name);
-
-    if (!shadow || !shadow->sp_pwdp){
-        printf("Could not get shadow entry.\n");
-        return 1;
-    }
-
-    if (!strcmp(shadow->sp_pwdp, "*")) {
-        return switch_user(user);
-    }
-    char pass[PWD_MAX + 1];
-    struct termios term;
-    tcgetattr(1, &term);
-    term.c_lflag &= ~ECHO;
-    tcsetattr(1, 0, &term);
-    term.c_lflag |= ECHO;
-    if (write(1, "Enter the password: ", 20) < 0)
-        tcsetattr(1, 0, &term);
-    if(scanf("%200s", pass) != 1){
-        printf("Error reading password.\n");
-        tcsetattr(1, 0, &term);
+    if (argc > 2 && !strcmp(argv[2], "-c")) {
+        if (argc < 4) {
+            printf("USAGE: %s [user] [-c] [command]\n", argv[0]);
+            return 0;
+        }
+        switch_user(user, argv + 3);
         return 0;
     }
-    tcsetattr(1, 0, &term);
-    printf("\n");
-
-    char *hashed = NULL;
-    hashed = crypt(pass, shadow->sp_pwdp);
-    if(!hashed){
-        printf("Could not hash password.\n");
-        return 1;
+#endif
+    if (argc > 2){
+        printf("USAGE: %s [user]\n", argv[0]);
+        return 0;
     }
-
-    if(strcmp(hashed, shadow->sp_pwdp)){
-        printf("Wrong password.\n");
-        return 1;
-    }
-
-    return switch_user(user);
+    switch_user(user, (char**)NULL);
+    return 0;
 }
