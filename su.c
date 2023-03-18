@@ -33,10 +33,12 @@ static void switch_user(struct passwd *user, char **program)
 
 static int check_password(struct spwd* shadow)
 {
+#ifdef EMPTY_PASSWORD
     /*check for empty password*/
     if (!strcmp(shadow->sp_pwdp, "*")) {
         return 0;
     }
+#endif
     char pass[PWD_MAX + 1];
     struct termios term;
     tcgetattr(1, &term);
@@ -57,7 +59,7 @@ static int check_password(struct spwd* shadow)
     char *hashed = NULL;
     hashed = crypt(pass, shadow->sp_pwdp);
     if (!hashed){
-        printf("Could not hash password.\n");
+        printf("Could not hash password, does your user have a password?.\n");
         exit(EXIT_FAILURE);
     }
     if (strcmp(hashed, shadow->sp_pwdp)){
