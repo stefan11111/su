@@ -33,12 +33,14 @@ static void switch_user(struct passwd *user, char **program)
 
 static int check_password(struct spwd* shadow)
 {
-#ifdef EMPTY_PASSWORD
     /*check for empty password*/
-    if (!strcmp(shadow->sp_pwdp, "*")) {
+    if (!strcmp(shadow->sp_pwdp, "*") || !strcmp(shadow->sp_pwdp, "")) {
+#ifdef EMPTY_PASSWORD
         return 0;
-    }
+#else
+        exit(EXIT_FAILURE);
 #endif
+    }
     char pass[PWD_MAX + 1];
     struct termios term;
     tcgetattr(1, &term);
