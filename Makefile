@@ -18,8 +18,7 @@ install: su
 	cp su ${DESTDIR}/usr/local/bin
 	cp su.1 ${DESTDIR}/usr/local/share/man/man1
 	chown root:root ${DESTDIR}/usr/local/bin/su
-	chmod 755 ${DESTDIR}/usr/local/bin/su
-	chmod u+s ${DESTDIR}/usr/local/bin/su
+	chmod 4755 ${DESTDIR}/usr/local/bin/su
 
 uninstall:
 	rm ${DESTDIR}/usr/local/bin/su
