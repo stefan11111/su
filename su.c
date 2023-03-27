@@ -1,6 +1,6 @@
 #include "su.h"
 
-static void switch_user(struct passwd *user, char **program)
+static void switch_user(struct passwd *user, char **program, char change_enviroment)
 {
     if (setgid(user->pw_gid) < 0){
         printf("Could not setgid.\n");
@@ -10,12 +10,16 @@ static void switch_user(struct passwd *user, char **program)
         printf("Could not setuid.\n");
         exit(EXIT_FAILURE);
     }
-    if (!user->pw_uid){
-        putenv("HOME=/root");
+    char const *term = getenv("TERM");
+    if (term) {
+        setenv("TERM", term, (int)change_enviroment);
     }
-    else{
-        putenv(home);
-    }
+    setenv("HOME", user->pw_dir, (int)change_enviroment);
+    setenv("SHELL", user->pw_shell, (int)change_enviroment);
+    setenv("USER", user->pw_name, (int)change_enviroment);
+    setenv("LOGNAME", user->pw_name, (int)change_enviroment);
+    setenv("PATH", (user->pw_uid ? USER_PATH : ROOT_PATH), (int)change_enviroment);
+
     if (!program) {
         if (!user->pw_shell){
             execl(SHELL, SHELL, (char*)NULL);
@@ -75,22 +79,34 @@ int main(int argc, char **argv)
 {
     uid_t ruid = getuid();
     struct passwd *user = NULL;
-    if(argc == 1){
+    if (argc == 1) {
         user = getpwuid(0);
     }
-    else{
+    else {
+#ifdef MINIMAL
+        if (argc > 2) {
+            printf("USAGE: %s [user]\n", argv[0]);
+            return 0;
+        }
         user = getpwnam(argv[1]);
-    }
-#ifdef COMMAND
-    if(argc > 1 && !strcmp(argv[1], "-c")){
-        user = getpwuid(0);
-    }
+#else
+        char **ptr = argv;
+        while(*(++ptr)) {
+            if (!strcmp(*ptr, "-c")) {
+                command = ptr + 1;
+                break;
+            }
+            if (!strcmp(*ptr, "-m") || !strcmp(*ptr, "-p")) {
+                change_enviroment = 0;
+            }
+        }
+        user = strstr(FLAGS, argv[1]) ? getpwuid(0) : getpwnam(argv[1]);
 #endif
+    }
     if (!user){
         printf("User does not exist\n");
         return -1;
     }
-    strcat(home, user->pw_name);
     if (ruid) {
         if (ruid == user->pw_uid){
             return 0;
@@ -106,28 +122,6 @@ int main(int argc, char **argv)
         }
 #endif
     }
-#ifdef COMMAND
-    if (argc > 1 && !strcmp(argv[1], "-c")) {
-        if (argc < 3) {
-            printf("USAGE: %s [user] [-c] [command]\n", argv[0]);
-            return 0;
-        }
-        switch_user(user, argv + 2);
-        return 0;
-    }
-    if (argc > 2 && !strcmp(argv[2], "-c")) {
-        if (argc < 4) {
-            printf("USAGE: %s [user] [-c] [command]\n", argv[0]);
-            return 0;
-        }
-        switch_user(user, argv + 3);
-        return 0;
-    }
-#endif
-    if (argc > 2){
-        printf("USAGE: %s [user]\n", argv[0]);
-        return 0;
-    }
-    switch_user(user, (char**)NULL);
+    switch_user(user, command, change_enviroment);
     return 0;
 }
