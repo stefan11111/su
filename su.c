@@ -85,18 +85,27 @@ int main(int argc, char **argv)
     else {
 #ifdef MINIMAL
         if (argc > 2) {
-            printf("USAGE: %s [user]\n", argv[0]);
+            printf("USAGE: %s [user] [-p -m -c]\n", argv[0]);
             return 0;
         }
         user = getpwnam(argv[1]);
 #else
         char **ptr = argv;
+        char **command_end = NULL;
         while(*(++ptr)) {
             if (!strcmp(*ptr, "-c")) {
+                if (command) {
+                    printf("You can only use -c once\n");
+                    return 0;
+                }
                 command = ptr + 1;
-                break;
+                command_end = ptr;
             }
             if (!strcmp(*ptr, "-m") || !strcmp(*ptr, "-p")) {
+                if (command - command_end == 1) {
+                    command_end = ptr;
+                    *ptr = NULL;
+                }
                 change_enviroment = 0;
             }
         }

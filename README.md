@@ -6,7 +6,7 @@ All this app does is change the current shell into another user's shell, provide
 If you don't specify a user, it defaults to root.
 This app is very minimal and has no bloat.
 This app also supports the -c and -p/-m flags.
-The -c flag must be the last flag, as everything after it is treated as part of the command.
+Everything between -c and the last flag, if any, is treated as part of the command.
 The user, if speciffied, must pe the first argument.
 This app has less that 200 lines of code.
 

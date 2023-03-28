@@ -3,7 +3,13 @@
 .SH NAME
 su minimal \- minimal su without pam dependency
 .SH SYNOPSIS
-.B Usage su [user]
+.B su [user] [-p -m -c]
+.SH OPTIONS
+-c
+        Pass command to the shell with the -c option.
+
+-m, -p
+        Preserve the entire environment, i.e., do not set HOME, SHELL, USER or LOGNAME.
 .SH AUTHOR
 Alexe Stefan <github dot com / stefan11111>
 .SH BUGS
