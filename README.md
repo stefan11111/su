@@ -7,6 +7,7 @@ If you don't specify a user, it defaults to root.
 This app is very minimal and has no bloat.
 This app also supports the -c and -p/-m flags.
 Everything between -c and the last flag, if any, is treated as part of the command.
+If -c in speciffied, but no command is given, -c is ignored.
 The user, if speciffied, must pe the first argument.
 This app has less that 200 lines of code.
 

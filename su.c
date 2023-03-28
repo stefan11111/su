@@ -91,25 +91,21 @@ int main(int argc, char **argv)
         user = getpwnam(argv[1]);
 #else
         char **ptr = argv;
-        char **command_end = NULL;
         while(*(++ptr)) {
-            if (!strcmp(*ptr, "-c")) {
-                if (command) {
-                    printf("You can only use -c once\n");
-                    return 0;
-                }
+            if (!command && !strcmp(*ptr, "-c")) {
                 command = ptr + 1;
-                command_end = ptr;
             }
-            if (!strcmp(*ptr, "-m") || !strcmp(*ptr, "-p")) {
-                if (command - command_end == 1) {
-                    command_end = ptr;
+            if (change_enviroment && (!strcmp(*ptr, "-m") || !strcmp(*ptr, "-p"))) {
+                if (command) {
                     *ptr = NULL;
                 }
                 change_enviroment = 0;
             }
         }
         user = strstr(FLAGS, argv[1]) ? getpwuid(0) : getpwnam(argv[1]);
+	if (command && *command == NULL) {
+            command = NULL;
+        }
 #endif
     }
     if (!user){
