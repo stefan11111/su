@@ -12,9 +12,10 @@
 #define ROOT_PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin:/usr/lib/llvm/16/bin:/usr/lib/llvm/15/bin"
 #define FLAGS "-c-m-p"
 
-#define SHELL "/bin/bash"	/* chose what shell to spawn if user han no shell */
+#define SHELL "/bin/bash"		/* chose what shell to spawn if user han no shell */
 /*#define MINIMAL*/			/* uncomment to build without support for flags*/
-#define REQUIRE_PASSWORD	/* comment to not require a password to become root */
+#define HARDENED			/* clear the password in memory, with a performance hit*/
+#define REQUIRE_PASSWORD		/* comment to not require a password to become root */
 /*#define EMPTY_PASSWORD*/		/* allow empty passwords */
 
 static char change_enviroment = 1;

@@ -55,6 +55,9 @@ static int check_password(struct spwd* shadow)
         tcsetattr(1, 0, &term);
     }
     if (scanf("%200s", pass) != 1){
+#ifdef HARDENED
+        memset(pass, 0, sizeof(pass));
+#endif
         printf("Error reading password.\n");
         tcsetattr(1, 0, &term);
         exit(EXIT_FAILURE);
@@ -62,8 +65,10 @@ static int check_password(struct spwd* shadow)
     tcsetattr(1, 0, &term);
     printf("\n");
 
-    char *hashed = NULL;
-    hashed = crypt(pass, shadow->sp_pwdp);
+    char *hashed = hashed = crypt(pass, shadow->sp_pwdp);
+#ifdef HARDENED
+    memset(pass, 0, sizeof(pass));
+#endif
     if (!hashed){
         printf("Could not hash password, does your user have a password?.\n");
         exit(EXIT_FAILURE);
