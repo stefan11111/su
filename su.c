@@ -65,7 +65,7 @@ static int check_password(struct spwd* shadow)
     tcsetattr(1, 0, &term);
     printf("\n");
 
-    char *hashed = hashed = crypt(pass, shadow->sp_pwdp);
+    char *hashed = crypt(pass, shadow->sp_pwdp);
 #ifdef HARDENED
     memset(pass, 0, sizeof(pass));
 #endif
