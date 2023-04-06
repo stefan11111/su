@@ -54,7 +54,8 @@ static int check_password(struct spwd* shadow)
     if (write(1, "Enter the password: ", 20) < 0) {
         tcsetattr(1, 0, &term);
     }
-    if (scanf("%200s", pass) != 1){
+    int n = read(0, pass, PWD_MAX);
+    if (n <= 0) {
 #ifdef HARDENED
         memset(pass, 0, sizeof(pass));
 #endif
@@ -64,6 +65,7 @@ static int check_password(struct spwd* shadow)
     }
     tcsetattr(1, 0, &term);
     printf("\n");
+    pass[n - 1] = '\0';
 
     char *hashed = crypt(pass, shadow->sp_pwdp);
 #ifdef HARDENED
