@@ -35,6 +35,15 @@ static void switch_user(struct passwd *user, char **program, char change_envirom
     exit(EXIT_SUCCESS);
 }
 
+static void* erase_from_memory(void *s, size_t n)
+{
+    volatile unsigned char *p = s;
+    while(n--) {
+        *p++ = 0;
+    }
+    return s;
+}
+
 static int check_password(struct spwd* shadow)
 {
     /*check for empty password*/
@@ -57,7 +66,7 @@ static int check_password(struct spwd* shadow)
     int n = read(0, pass, PWD_MAX);
     if (n <= 0) {
 #ifdef HARDENED
-        memset(pass, 0, sizeof(pass));
+        erase_from_memory(pass, sizeof(pass));
 #endif
         printf("Error reading password.\n");
         tcsetattr(1, 0, &term);
@@ -69,7 +78,7 @@ static int check_password(struct spwd* shadow)
 
     char *hashed = crypt(pass, shadow->sp_pwdp);
 #ifdef HARDENED
-    memset(pass, 0, sizeof(pass));
+    erase_from_memory(pass, sizeof(pass));
 #endif
     if (!hashed){
         printf("Could not hash password, does your user have a password?.\n");
