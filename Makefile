@@ -16,6 +16,8 @@ debug: su.c su.h
 	${CC} ${CFLAGS_DEBUG} su.c -o su ${LIBS}
 
 install: su
+	mkdir -p ${DESTDIR}${PREFIX}/bin
+	mkdir -p ${DESTDIR}${PREFIX}/share/man/man1
 	cp su ${DESTDIR}${PREFIX}/bin
 	cp su.1 ${DESTDIR}${PREFIX}/share/man/man1
 	chown root:root ${DESTDIR}${PREFIX}/bin/su
