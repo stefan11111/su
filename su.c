@@ -3,11 +3,11 @@
 static void switch_user(struct passwd *user, char **program, char change_enviroment)
 {
     if (setgid(user->pw_gid) < 0){
-        printf("Could not setgid.\n");
+        fprintf(stderr, "Could not setgid.\n");
         exit(EXIT_FAILURE);
     }
     if (setuid(user->pw_uid) < 0){
-        printf("Could not setuid.\n");
+        fprintf(stderr, "Could not setuid.\n");
         exit(EXIT_FAILURE);
     }
     char const *term = getenv("TERM");
@@ -29,7 +29,7 @@ static void switch_user(struct passwd *user, char **program, char change_envirom
         exit(EXIT_SUCCESS);
     }
     if (execvp(*program, program) == -1) {
-        printf("%s: command not found\n", *program);
+        fprintf(stderr, "%s: command not found\n", *program);
         exit(EXIT_FAILURE);
     }
     exit(EXIT_SUCCESS);
@@ -68,7 +68,7 @@ static int check_password(struct spwd* shadow)
 #ifdef HARDENED
         erase_from_memory(pass, sizeof(pass));
 #endif
-        printf("Error reading password.\n");
+        fprintf(stderr, "Error reading password.\n");
         tcsetattr(1, 0, &term);
         exit(EXIT_FAILURE);
     }
@@ -81,11 +81,11 @@ static int check_password(struct spwd* shadow)
     erase_from_memory(pass, sizeof(pass));
 #endif
     if (!hashed){
-        printf("Could not hash password, does your user have a password?.\n");
+        fprintf(stderr, "Could not hash password, does your user have a password?.\n");
         exit(EXIT_FAILURE);
     }
     if (strcmp(hashed, shadow->sp_pwdp)){
-        printf("Wrong password.\n");
+        fprintf(stderr, "Wrong password.\n");
         exit(EXIT_FAILURE);
     }
     return 0;
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 #endif
     }
     if (!user){
-        printf("User does not exist\n");
+        fprintf(stderr, "User does not exist\n");
         return -1;
     }
     if (ruid) {
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
         }
         struct spwd* shadow = getspnam(user->pw_name);
         if (!shadow || !shadow->sp_pwdp){
-            printf("Could not get shadow entry.\n");
+            fprintf(stderr, "Could not get shadow entry.\n");
             return 1;
         }
 #ifdef REQUIRE_PASSWORD
